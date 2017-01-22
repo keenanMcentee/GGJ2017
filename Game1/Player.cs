@@ -16,9 +16,12 @@ namespace Game1
         /// <summary>
         /// Declaration and initilisation of variables and data.
         /// </summary>
-        private Texture2D texture;
+        private Texture2D textureL;
+        Texture2D textureR;
+        Texture2D texture;
+        
         private Vector2 position;
-        private Vector2 velocity;
+        public Vector2 velocity;
         private Rectangle rectangle;
         private Vector2 arrayPosition;
         private bool hasJumped = false;
@@ -32,7 +35,7 @@ namespace Game1
         KeyboardState pastKeyboard;
         GamePadState gamePad;
         GamePadState previousGamePad;
-        const int speed = 2;
+        const int speed = 4;
         int score = 0;
         int blockSize = 64;
         //List<Particles> particle;
@@ -64,6 +67,7 @@ namespace Game1
         /// </summary>
         public Player()
         {
+           
             alive = true;
             //particle = new List<Particles>();
         }
@@ -74,15 +78,17 @@ namespace Game1
         /// <param name="map"></param>
         public void Load(ContentManager Content, int[,] map)
         {
-            texture = Content.Load<Texture2D>("player");
+            textureL = Content.Load<Texture2D>("player");
+            textureR = Content.Load<Texture2D>("player2");
+            texture = textureL;
             for (int x = 0; x < map.GetLength(1); x++)
             {
                 for (int y = 0; y < map.GetLength(0); y++)
                 {
                     int number = map[y, x];
-                    if (number == 9)
+                    if (number == 1000)
                     {
-                        position = new Vector2(x * texture.Width, y * texture.Height);
+                        position = new Vector2(x * blockSize, y * blockSize);
                     }
                 }
 
@@ -148,17 +154,20 @@ namespace Game1
 
             if (keyboard.IsKeyDown(Keys.D) || keyboard.IsKeyDown(Keys.Right) || (gamePad.DPad.Right == ButtonState.Pressed) || (gamePad.ThumbSticks.Left.X > 0.5))
             {
+                texture = textureR;
                 velocity.X = speed;
             }
             else if (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.A) || (gamePad.DPad.Left == ButtonState.Pressed) || (gamePad.ThumbSticks.Left.X < -0.5))
             {
+                texture = textureL;
                 velocity.X = -speed;
             }
             else velocity.X = 0f;
 
             if (((keyboard.IsKeyDown(Keys.Space) && pastKeyboard.IsKeyUp(Keys.Space)) || (gamePad.Buttons.A == ButtonState.Pressed) && (previousGamePad.Buttons.A == ButtonState.Released)) && hasJumped == false)
             {
-                velocity.Y -= 2;
+                velocity.Y -= 16;
+                //position.Y -= 50;
                 hasJumped = true;
             }
             pastKeyboard = Keyboard.GetState();
@@ -183,10 +192,35 @@ namespace Game1
             {
                 velocity.Y += 0.002f;
             }
-            if (arrayPosition.Y > 0 && arrayPosition.Y < 14)
+            if (arrayPosition.Y > 0 && arrayPosition.Y < 200)
             {
                 //If touching the ground or top of a block.
-                if (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 1 || mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 2)
+                if (/*mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 1 ||*/ 
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 2 || 
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 7 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 8 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 12 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 17 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 18 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 22 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 27 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 28 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 37 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 38 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 43 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 48 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 49 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 54 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 55 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 60 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 61 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 66 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 71 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 72 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 76 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 81 ||
+                    mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 82 ||
+                    rectangle.Intersects(newRectangle))
                 {
                     if (velocity.Y > 0)
                         velocity.Y = 0;
@@ -207,35 +241,90 @@ namespace Game1
                 }
                 else if ((mapArray[(int)(arrayPosition.Y - 1), (int)arrayPosition.X + 1] == 1 || mapArray[(int)(arrayPosition.Y - 1), (int)arrayPosition.X + 1] == 2))
                 {
-                    if (velocity.Y < 0 && position.Y % blockSize == 0)
+                    if (velocity.Y < 0 && position.Y % blockSize != 0)
                         velocity.Y = 0f;
                     //position.Y += position.Y % (blockSize / 100);
                 }
             }
             //If player ain't touching the ground.
-            if (arrayPosition.Y > 0 && arrayPosition.Y < 14)
+            if (arrayPosition.Y > 0 && arrayPosition.Y < 100)
             {
 
                 //if the player hits off the top of a block.
-                if ((mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 1 || mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 2) && hasJumped == true || rectangle.Intersects(newRectangle))
+                if ((mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 1) && hasJumped == true||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 2) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 7) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 8) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 12) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 17) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 18) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 22) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 27) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 28) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 37) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 38) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 43) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 48) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 49) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 54) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 55) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 60) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 61) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 66) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 71) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 72) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 76) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 81) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 82) && hasJumped == true ||
+                    rectangle.Intersects(newRectangle))
                 {
                     velocity.Y = 0;
                     position = previousPos;
                 }
-                    
-                
+                //if (mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X] == 2)
+                //    {
+                //    velocity.Y -= 1;
+                //    }
                 else
                 {
-                    if (velocity.Y < 3f)
+                    if (velocity.Y < 1f)
                     {
-                        velocity.Y += 0.002f;
+                        velocity.Y += 0.001f;
+                    }
+                    if (velocity.Y < 0.05f)
+                    {
+                        hasJumped = false;
                     }
                 }
                 //If the player hits is inside a block, put him on top of it
-                if ((mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X] == 1 || mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X] == 2))
+                if ((mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 1) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 2) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 7) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 8) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 12) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 17) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 18) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 22) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 27) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 28) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 37) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 38) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 43) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 48) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 49) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 54) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 55) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 60) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 61) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 66) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 71) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 72) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 76) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 81) && hasJumped == true ||
+                    (mapArray[(int)(arrayPosition.Y + 1), (int)arrayPosition.X] == 82) && hasJumped == true )
                 {
-                    position = previousPos;
-                    //position.Y = position.Y - blockSize;
+                    position.Y = previousPos.Y;
+                    position.Y = position.Y - blockSize;
                 }
                 //else if (mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X] == 4)
                 //{
@@ -245,9 +334,9 @@ namespace Game1
             //Collision with blocks side to side
             if (position.X > 0 && position.X < mapArray.GetLength(1) * blockSize)
             {
-                if (arrayPosition.X > 0 && arrayPosition.X < mapArray.GetLength(1) && arrayPosition.Y > 0 && arrayPosition.Y < mapArray.GetLength(1))
-                {
-                    if ((mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X + 1] == 1 || mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X + 1] == 2))
+                /*if (arrayPosition.X > 0 && arrayPosition.X < mapArray.GetLength(1) && arrayPosition.Y > 0 && arrayPosition.Y < mapArray.GetLength(1))
+                {*/
+                    if (rectangle.TouchLeftOf(newRectangle))
                     {
                         if (velocity.X > 0)
                         {
@@ -255,17 +344,17 @@ namespace Game1
                             position = previousPos;
                         }
                     }
-                    if ((mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X - 1] == 1 || mapArray[(int)(arrayPosition.Y), (int)arrayPosition.X - 1] == 2))
-                    {
+
+                    if (rectangle.TouchRightOf(newRectangle))
                         if (velocity.X < 0 && position.X % blockSize == 0)
                         {
                             velocity.X = 0;
                             position = previousPos;
                         }
-                    }
-                }
+                    
+                
             }
-            if (velocity.Y < 0.4)
+            if (velocity.Y < 0.1)
             {
                 position.Y -= position.Y % blockSize;
             }
@@ -282,41 +371,39 @@ namespace Game1
         /// </summary>
         /// <param name="enemy"></param>
         /// <param name="rnd"></param>
-        //public void CollisionEnemy(EnemySq enemy, Random rnd)
-        //{
-        //    this.rnd = rnd;
-        //    if (enemy.Alive)
-        //    {
-        //        if (rectangle.TouchTopOf(enemy.Rectangle))
-        //        {
-        //            rectangle.Y = enemy.Rectangle.Y - rectangle.Height;
-        //            position.Y -= 2f;
-        //            velocity.Y -= blockSizef;
-        //            enemy.Alive = false;
-        //            particle = new List<Particles>(rnd.Next(300, 600));
-        //            desintegration.Play();
-        //            for (int i = 0, j = rnd.Next(300, 600); i < j; i++)
-        //            {
-        //                particle.Add(new Particles(new Vector2(enemy.Rectangle.X, enemy.Rectangle.Y), rnd, enemy.Texture));
-        //            }
-        //            score += 100;
-        //        }
-        //        //else if (enemy.Rectangle.Intersects(rectangle))
-        //        //{
-        //        //    if (alive)
-        //        //    {
-        //        //        alive = false;
-        //        //        deathSound.Play();
-        //        //        for (int i = 0, j = rnd.Next(200, 400); i < j; i++)
-        //        //        {
+        public void CollisionEnemy(Enemy enemy, Random rnd)
+        {
+            this.rnd = rnd;
+            //if (enemy.Alive)
+            //{
+                //if (rectangle.TouchTopOf(enemy.Rectangle))
+                //{
+                //    rectangle.Y = enemy.Rectangle.Y - rectangle.Height;
+                //    position.Y -= 2f;
+                //    velocity.Y -= blockSize;
+                //    enemy.Alive = false;
+                //    //desintegration.Play();
 
-        //        //            particle.Add(new Particles(new Vector2(rectangle.X, rectangle.Y), rnd, texture));
-        //        //        }
-        //        //    }
-        //        //}
-        //    }
+                //    //score += 100;
+                //}
+                //else if (enemy.Rectangle.Intersects(rectangle))
+                //{
+                //    if (alive)
+                //    {
+                //        alive = false;
+                //        deathSound.Play();
+                //        for (int i = 0, j = rnd.Next(200, 400); i < j; i++)
+                //        {
 
-        //}
+                //            particle.Add(new Particles(new Vector2(rectangle.X, rectangle.Y), rnd, texture));
+                //        }
+                //    }
+                //}
+
+
+            
+        }
+        
         /// <summary>
         /// Draw method for the player to draw him to screen.
         /// </summary>

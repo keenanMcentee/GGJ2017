@@ -42,7 +42,7 @@ namespace Game1
                 for (int y = 0; y < map.GetLength(0); y++)
                 {
                     int number = map[y, x];
-                    if (number > 0 && number < 5)
+                    if (number > 0 && number < 1000)
                     {
                         collisionTiles.Add(new CollisionTiles(number, new Rectangle(x * size, y * size, size, size)));
                     }

@@ -39,7 +39,7 @@ namespace Game1
         /// <param name="newRectangle"></param>
         public CollisionTiles(int i, Rectangle newRectangle)
         {
-            if (i < 5)
+            if (i < 1000)
                 texture = Content.Load<Texture2D>("Tile" + i);
             this.Rectangle = newRectangle;
         }
